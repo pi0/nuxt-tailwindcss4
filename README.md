@@ -10,7 +10,9 @@
 Experimental integration with [Nuxt](https://nuxt.com/) + [Tailwind CSS v4](https://tailwindcss.com/blog/tailwindcss-v4-alpha).
 
 > [!IMPORTANT]
-> This is an experimental temporary module. Use official [`@nuxtjs/tailwindcss`](https://tailwindcss.nuxtjs.org/) integration for your production applications.
+> This is a temporary module to experiment things.
+>
+> Use official [`@nuxtjs/tailwindcss`](https://tailwindcss.nuxtjs.org/) and check [nuxt-modules/tailwindcss#790](https://github.com/nuxt-modules/tailwindcss/issues/790) for v7 roadmap.
 
 ## Quick setup
 
