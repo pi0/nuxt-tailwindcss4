@@ -2,15 +2,15 @@
 
 <!-- automd:badges -->
 
-[![npm version](https://flat.badgen.net/npm/v/nuxt-shiki)](https://npmjs.com/package/nuxt-shiki)
-[![npm downloads](https://flat.badgen.net/npm/dm/nuxt-shiki)](https://npmjs.com/package/nuxt-shiki)
+[![npm version](https://flat.badgen.net/npm/v/nuxt-tailwindcss4)](https://npmjs.com/package/nuxt-tailwindcss4)
+[![npm downloads](https://flat.badgen.net/npm/dm/nuxt-tailwindcss4)](https://npmjs.com/package/nuxt-tailwindcss4)
 
 <!-- /automd -->
 
-Experimental integration with [Nuxt](https://nuxt.com/) + [Tailwind CSS v4.0 (alpha)](https://tailwindcss.com/blog/tailwindcss-v4-alpha).
+Experimental integration with [Nuxt](https://nuxt.com/) + [Tailwind CSS v4](https://tailwindcss.com/blog/tailwindcss-v4-alpha).
 
 > [!IMPORTANT]
-> This is an experiment only. Use official [`@nuxtjs/tailwindcss`](https://tailwindcss.nuxtjs.org/) module for your production application.
+> This is an experimental temporary module. Use official [`@nuxtjs/tailwindcss`](https://tailwindcss.nuxtjs.org/) integration for your production applications.
 
 ## Quick setup
 
