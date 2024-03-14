@@ -18,15 +18,19 @@ export default defineNuxtModule<ModuleOptions>({
   async setup(options, nuxt) {
     // const resolver = createResolver(import.meta.url)
 
-    // Add vite plugion
-    const twVitePlugin = await import('@tailwindcss/vite').then(
-      (r) => r.default,
-    )
-    addVitePlugin(twVitePlugin())
+    // Add vite plugin
+    if (nuxt.options.builder === '@nuxt/vite-builder') {
+      const twVitePlugin = await import('@tailwindcss/vite').then(
+        (r) => r.default,
+      )
+      addVitePlugin(twVitePlugin())
+    } else {
+      nuxt.options.postcss.plugins['@tailwindcss/postcss'] = {}
+    }
 
     // Inject css
     const cssTemplate = addTemplate({
-      filename: 'tailwindcss.css',
+      filename: 'tailwind.css',
       getContents: () => {
         return `@import 'tailwindcss';`
       },
