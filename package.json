@@ -1,6 +1,6 @@
 {
   "name": "nuxt-tailwindcss4",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Nuxt + tailwindcss 4 (alpha)",
   "repository": "pi0/nuxt-tailwindcss4",
   "license": "MIT",
