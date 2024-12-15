@@ -7,7 +7,7 @@ import {
   useNuxt,
 } from '@nuxt/kit'
 import { join } from 'pathe'
-import { name, version } from '../package.json'
+import { name, version, configKey, compatibility } from '../package.json'
 
 async function resolveCSSPath(cssPath: string) {
   const _cssPath = await resolvePath(cssPath, { extensions: ['.css', '.sass', '.scss', '.less', '.styl'] })
@@ -55,7 +55,8 @@ export default defineNuxtModule<ModuleOptions>({
   meta: {
     name,
     version,
-    configKey: 'tailwindcss4',
+    configKey,
+    compatibility
   },
   defaults: (nuxt = useNuxt()) => ({
     cssPath: join(nuxt.options.dir.assets, 'css/tailwind.css'),
