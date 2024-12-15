@@ -2,8 +2,8 @@
 
 <!-- automd:badges -->
 
-[![npm version](https://flat.badgen.net/npm/v/nuxt-tailwindcss4)](https://npmjs.com/package/nuxt-tailwindcss4)
-[![npm downloads](https://flat.badgen.net/npm/dm/nuxt-tailwindcss4)](https://npmjs.com/package/nuxt-tailwindcss4)
+[![npm version](https://img.shields.io/npm/v/nuxt-tailwindcss4)](https://npmjs.com/package/nuxt-tailwindcss4)
+[![npm downloads](https://img.shields.io/npm/dm/nuxt-tailwindcss4)](https://npm.chart.dev/nuxt-tailwindcss4)
 
 <!-- /automd -->
 
