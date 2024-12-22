@@ -17,7 +17,10 @@ async function resolveCSSPath(cssPath: string) {
     : addTemplate({ filename: 'tailwind.css', getContents: () => `@import 'tailwindcss';` }).dst
 }
 
-function resolveInjectPosition(css: string[], position: Extract<ModuleOptions['cssPath'], any[]>[1]['injectPosition'] = 'first') {
+type RelativeInjectPosition = { after: string } | { before: string } | Record<'after' | 'before', string>
+type InjectPosition = 'first' | 'last' | number | RelativeInjectPosition
+
+async function resolveInjectPosition(css: string[], position: InjectPosition = 'first') {
   if (typeof (position) === 'number') {
     return ~~Math.min(position, css.length + 1)
   }
@@ -26,29 +29,34 @@ function resolveInjectPosition(css: string[], position: Extract<ModuleOptions['c
     switch (position) {
       case 'first': return 0
       case 'last': return css.length
-      default: throw new Error('invalid literal: ' + position)
     }
   }
 
-  if (position.after !== undefined) {
-    const index = css.indexOf(position.after)
-    if (index === -1) {
-      throw new Error('`after` position specifies a file which does not exists on CSS stack: ' + position.after)
+  if (typeof (position) === 'object') {
+    const minIndex = 'after' in position ? css.indexOf(await resolvePath(position.after)) + 1 : 0
+    const maxIndex = 'before' in position ? css.indexOf(await resolvePath(position.before)) : css.length
+
+    if ([minIndex, maxIndex].includes(-1)) {
+      throw new Error(`\`injectPosition\` specifies a file which does not exists on CSS stack: ` + JSON.stringify(position))
     }
 
-    return index + 1
+    if (minIndex > maxIndex) {
+      throw new Error(`\`injectPosition\` specifies a relative location \`${minIndex}\` that cannot be resolved (i.e., \`after\` orders \`before\` may be reversed): ` + JSON.stringify(position))
+    }
+
+    return minIndex
   }
 
-  throw new Error('invalid position: ' + JSON.stringify(position))
+  throw new Error('invalid `injectPosition`: ' + JSON.stringify(position))
 }
 
 export interface ModuleOptions {
   /**
   * The path of the Tailwind CSS file. If the file does not exist, the module's default CSS file will be imported instead.
   *
-  * @default '~/assets/css/tailwind.css'
+  * The default is `<assets>/css/tailwind.css` if found, else we generate a CSS file with `@import "tailwindcss"` in the buildDir.
   */
- cssPath: string | false | [string | false, { injectPosition: 'first' | 'last' | number | { after: string } }]
+ cssPath: string | false | [string | false, { injectPosition: InjectPosition }]
 }
 
 export default defineNuxtModule<ModuleOptions>({
@@ -64,13 +72,14 @@ export default defineNuxtModule<ModuleOptions>({
   async setup(moduleOptions, nuxt) {
     // const resolver = createResolver(import.meta.url)
 
-    // Add plugin
+    // add plugin
     if (nuxt.options.builder === '@nuxt/vite-builder') {
       await import('@tailwindcss/vite').then((r) => addVitePlugin(r.default()))
     } else {
       nuxt.options.postcss.plugins['@tailwindcss/postcss'] = {}
     }
 
+    // resolve CSS
     const [cssPath, cssPathConfig] = Array.isArray(moduleOptions.cssPath) ? moduleOptions.cssPath : [moduleOptions.cssPath]
     if (!cssPath) return
 
@@ -80,14 +89,7 @@ export default defineNuxtModule<ModuleOptions>({
 
     // inject only if this file isn't listed already by user
     if (!resolvedNuxtCss.includes(resolvedCss)) {
-      let injectPosition: number
-      try {
-        injectPosition = resolveInjectPosition(nuxt.options.css, cssPathConfig?.injectPosition)
-      }
-      catch (e: any) {
-        throw new Error('failed to resolve Tailwind CSS injection position: ' + e.message)
-      }
-
+      const injectPosition = await resolveInjectPosition(resolvedNuxtCss, cssPathConfig?.injectPosition)
       nuxt.options.css.splice(injectPosition, 0, resolvedCss)
     }
   },

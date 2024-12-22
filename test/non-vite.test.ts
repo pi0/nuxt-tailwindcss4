@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { fileURLToPath } from 'node:url'
 import { setup, $fetch } from '@nuxt/test-utils/e2e'
+import { getCSSContents } from './utils'
 
 describe('module in non-vite', async () => {
   await setup({
@@ -9,9 +10,8 @@ describe('module in non-vite', async () => {
   })
 
   it('ssr styles', async () => {
-    const html = await $fetch('/')
-    const cssImport = html.match(/<link rel="stylesheet" href="([^"]+)">/)![1]
-    const cssContents = await $fetch(cssImport)
+    const html = await $fetch<string>('/')
+    const cssContents = await getCSSContents(html)
     expect(cssContents).includes('https://tailwindcss.com')
     expect(cssContents).toMatchFileSnapshot('.snapshot/styles.css')
   })
