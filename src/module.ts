@@ -10,7 +10,7 @@ import { join } from 'pathe'
 import { name, version, configKey, compatibility } from '../package.json'
 
 async function resolveCSSPath(cssPath: string) {
-  const _cssPath = await resolvePath(cssPath, { extensions: ['.css', '.sass', '.scss', '.less', '.styl'] })
+  const _cssPath = await resolvePath(cssPath, { extensions: ['.css', '.sass', '.scss', '.less', '.styl'], virtual: true })
 
   return existsSync(_cssPath)
     ? _cssPath
@@ -56,7 +56,7 @@ export interface ModuleOptions {
   *
   * The default is `<assets>/css/tailwind.css` if found, else we generate a CSS file with `@import "tailwindcss"` in the buildDir.
   */
- cssPath: string | false | [string | false, { injectPosition: InjectPosition }]
+ cssPath: string | false | [string, { injectPosition: InjectPosition }]
 }
 
 export default defineNuxtModule<ModuleOptions>({
@@ -79,18 +79,20 @@ export default defineNuxtModule<ModuleOptions>({
       nuxt.options.postcss.plugins['@tailwindcss/postcss'] = {}
     }
 
-    // resolve CSS
-    const [cssPath, cssPathConfig] = Array.isArray(moduleOptions.cssPath) ? moduleOptions.cssPath : [moduleOptions.cssPath]
-    if (!cssPath) return
+    nuxt.hook('modules:done', async () => {
+      // resolve CSS
+      const [cssPath, cssPathConfig] = Array.isArray(moduleOptions.cssPath) ? moduleOptions.cssPath : [moduleOptions.cssPath]
+      if (!cssPath) return
 
-    const resolvedCss = await resolveCSSPath(cssPath)
-    nuxt.options.css = nuxt.options.css ?? []
-    const resolvedNuxtCss = await Promise.all(nuxt.options.css.map((p: any) => resolvePath(p.src ?? p))) || []
+      const resolvedCss = await resolveCSSPath(cssPath)
+      nuxt.options.css = nuxt.options.css ?? []
+      const resolvedNuxtCss = await Promise.all(nuxt.options.css.map((p: any) => resolvePath(p.src ?? p))) || []
 
-    // inject only if this file isn't listed already by user
-    if (!resolvedNuxtCss.includes(resolvedCss)) {
-      const injectPosition = await resolveInjectPosition(resolvedNuxtCss, cssPathConfig?.injectPosition)
-      nuxt.options.css.splice(injectPosition, 0, resolvedCss)
-    }
+      // inject only if this file isn't listed already by user
+      if (!resolvedNuxtCss.includes(resolvedCss)) {
+        const injectPosition = await resolveInjectPosition(resolvedNuxtCss, cssPathConfig?.injectPosition)
+        nuxt.options.css.splice(injectPosition, 0, resolvedCss)
+      }
+    })
   },
 })
