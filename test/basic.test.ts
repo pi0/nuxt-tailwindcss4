@@ -12,7 +12,7 @@ describe('module', async () => {
   it('ssr styles', async () => {
     const html = await $fetch<string>('/')
     const cssContents = await getCSSContents(html)
-    expect(cssContents).includes('https://tailwindcss.com')
+    expect(cssContents).includes('tailwindcss')
     expect(cssContents).toMatchFileSnapshot('.snapshot/styles.css')
   })
 

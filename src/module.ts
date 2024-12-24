@@ -5,6 +5,8 @@ import {
   addTemplate,
   resolvePath,
   useNuxt,
+  createResolver,
+  addImports,
 } from '@nuxt/kit'
 import { join } from 'pathe'
 import { name, version, configKey, compatibility } from '../package.json'
@@ -44,11 +46,30 @@ async function resolveInjectPosition(css: string[], position: InjectPosition = '
       throw new Error(`\`injectPosition\` specifies a relative location \`${minIndex}\` that cannot be resolved (i.e., \`after\` orders \`before\` may be reversed): ` + JSON.stringify(position))
     }
 
-    return minIndex
+    return 'after' in position ? minIndex : maxIndex
   }
 
   throw new Error('invalid `injectPosition`: ' + JSON.stringify(position))
 }
+
+type EditorSupportConfig = Partial<{
+  /**
+   * Enable utility to write Tailwind CSS classes inside strings.
+   *
+   * You will need to update `.vscode/settings.json` based on this value. This works only for Nuxt 3 or Nuxt 2 with Bridge.
+   *
+   * ```json
+   * {
+   *   "tailwindCSS.experimental.classRegex": ["tw`(.*?)`", "tw\\('(.*?)'\\)"]
+   * }
+   * ```
+   *
+   * Read https://tailwindcss.nuxtjs.org/tailwind/editor-support#string-classes-autocomplete.
+   *
+   * @default false // if true, { as: 'tw' }
+   */
+  autocompleteUtil: false | true | Pick<Exclude<Parameters<typeof addImports>[0], any[]>, 'as'>
+}>
 
 export interface ModuleOptions {
   /**
@@ -56,7 +77,15 @@ export interface ModuleOptions {
   *
   * The default is `<assets>/css/tailwind.css` if found, else we generate a CSS file with `@import "tailwindcss"` in the buildDir.
   */
- cssPath: string | false | [string, { injectPosition: InjectPosition }]
+ cssFile: string | false | [string, { position: InjectPosition }]
+ /**
+  * Enable some utilities for better editor support and DX.
+  *
+  * Read https://tailwindcss.nuxtjs.org/tailwind/editor-support.
+  *
+  * @default false // if true, { autocompleteUtil: true }
+  */
+ editorSupport: false | true | EditorSupportConfig
 }
 
 export default defineNuxtModule<ModuleOptions>({
@@ -67,10 +96,10 @@ export default defineNuxtModule<ModuleOptions>({
     compatibility
   },
   defaults: (nuxt = useNuxt()) => ({
-    cssPath: join(nuxt.options.dir.assets, 'css/tailwind.css'),
+    cssFile: join(nuxt.options.dir.assets, 'css/tailwind.css'),
   }),
   async setup(moduleOptions, nuxt) {
-    // const resolver = createResolver(import.meta.url)
+    const resolver = createResolver(import.meta.url)
 
     // add plugin
     if (nuxt.options.builder === '@nuxt/vite-builder') {
@@ -79,9 +108,22 @@ export default defineNuxtModule<ModuleOptions>({
       nuxt.options.postcss.plugins['@tailwindcss/postcss'] = {}
     }
 
+    if (moduleOptions.editorSupport) {
+      const { autocompleteUtil = true } = (typeof moduleOptions.editorSupport === 'object' ? typeof moduleOptions.editorSupport : {}) as EditorSupportConfig
+
+      if (autocompleteUtil) {
+        addImports({
+          name: 'autocompleteUtil',
+          from: resolver.resolve('./runtime/utils'),
+          as: 'tw',
+          ...(typeof autocompleteUtil === 'object' ? autocompleteUtil : {}),
+        })
+      }
+    }
+
     nuxt.hook('modules:done', async () => {
       // resolve CSS
-      const [cssPath, cssPathConfig] = Array.isArray(moduleOptions.cssPath) ? moduleOptions.cssPath : [moduleOptions.cssPath]
+      const [cssPath, cssPathConfig] = Array.isArray(moduleOptions.cssFile) ? moduleOptions.cssFile : [moduleOptions.cssFile]
       if (!cssPath) return
 
       const resolvedCss = await resolveCSSPath(cssPath)
@@ -90,7 +132,7 @@ export default defineNuxtModule<ModuleOptions>({
 
       // inject only if this file isn't listed already by user
       if (!resolvedNuxtCss.includes(resolvedCss)) {
-        const injectPosition = await resolveInjectPosition(resolvedNuxtCss, cssPathConfig?.injectPosition)
+        const injectPosition = await resolveInjectPosition(resolvedNuxtCss, cssPathConfig?.position)
         nuxt.options.css.splice(injectPosition, 0, resolvedCss)
       }
     })
