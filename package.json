@@ -45,7 +45,7 @@
     "@nuxt/schema": "latest",
     "@nuxt/test-utils": "latest",
     "@nuxt/webpack-builder": "^3.14.1592",
-    "@types/node": "^20.11.24",
+    "@types/node": "^22.10.4",
     "automd": "^0.3.12",
     "changelogen": "^0.5.7",
     "eslint": "^8.57.0",
