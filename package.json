@@ -35,7 +35,7 @@
     "@nuxt/kit": "latest",
     "@tailwindcss/postcss": "next",
     "@tailwindcss/vite": "next",
-    "pathe": "^1.1.2",
+    "pathe": "^2.0.3",
     "tailwindcss": "next"
   },
   "devDependencies": {
